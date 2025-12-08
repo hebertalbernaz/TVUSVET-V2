@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLicense } from '../../contexts/LicenseContext';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export default function PrescriptionModule() {
   const [formData, setFormData] = useState({ name: '', default_dosage: '', type: practice });
 
   // Load drugs from database
-  const loadDrugs = async () => {
+  const loadDrugs = useCallback(async () => {
     try {
       setLoading(true);
       const db = await getDatabase();
