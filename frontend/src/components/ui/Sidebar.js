@@ -15,6 +15,7 @@ import {
 import { cn } from '../../lib/utils';
 import { Button } from './button';
 import { useAuth } from '../../contexts/AuthContext';
+import { DevToolbar } from '../DevToolbar';
 
 export function Sidebar() {
   const { hasModule, practice, setPractice, terms } = useLicense();
