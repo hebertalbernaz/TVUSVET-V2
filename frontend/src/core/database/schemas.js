@@ -1,5 +1,5 @@
 /**
- * TVUSVET V2.0 - RxDB Schemas (Final V6 - With Lab Module)
+ * TVUSVET V2.0 - RxDB Schemas (Final V7 - With Professional Ophthalmo)
  */
 
 // --- SETTINGS ---
@@ -201,19 +201,104 @@ export const PrescriptionSchema = {
   required: ['id', 'patient_id']
 };
 
-// --- OPHTHALMO ---
+// Helper schema for eye data (used in OphthalmoSchema)
+const EyeDataProperties = {
+  // Visual Acuity
+  visual_acuity: { type: 'string' },
+  visual_acuity_corrected: { type: 'string' },
+  
+  // Intraocular Pressure
+  iop: { type: 'number' },
+  iop_method: { type: 'string' },
+  
+  // Biomicroscopy (Anterior Segment)
+  biomicroscopy: {
+    type: 'object',
+    properties: {
+      lids: { type: 'string' },
+      conjunctiva: { type: 'string' },
+      cornea: { type: 'string' },
+      anterior_chamber: { type: 'string' },
+      iris: { type: 'string' },
+      pupil: { type: 'string' },
+      lens: { type: 'string' }
+    }
+  },
+  
+  // Fundoscopy (Posterior Segment)
+  fundoscopy: {
+    type: 'object',
+    properties: {
+      vitreous: { type: 'string' },
+      optic_disc: { type: 'string' },
+      cup_disc_ratio: { type: 'string' },
+      macula: { type: 'string' },
+      retina: { type: 'string' },
+      vessels: { type: 'string' },
+      choroid: { type: 'string' }
+    }
+  },
+  
+  // Visual Data (Base64 drawings)
+  eye_fundus_drawing: { type: 'string' },
+  campimetry_grid: { 
+    oneOf: [
+      { type: 'array', items: { type: 'number' } },
+      { type: 'string' },
+      { type: 'null' }
+    ]
+  },
+  
+  // Diagnosis and Conduct per eye
+  diagnosis: { type: 'string' },
+  conduct: { type: 'string' }
+};
+
+// --- OPHTHALMO (Professional Version V1) ---
 export const OphthalmoSchema = {
-  title: 'ophthalmo schema',
-  version: 0,
+  title: 'ophthalmo exam schema',
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {
     id: { type: 'string', maxLength: 100 },
-    exam_id: { type: 'string' },
-    diagnosis: { type: 'string' },
-    visual_data: { type: 'string' }
+    patient_id: { type: 'string' },
+    patient_name: { type: 'string' },
+    date: { type: 'string', format: 'date-time' },
+    doctor_name: { type: 'string' },
+    requesting_doctor: { type: 'string' },
+    
+    // Clinical History
+    chief_complaint: { type: 'string' },
+    clinical_history: { type: 'string' },
+    current_medications: { type: 'string' },
+    allergies: { type: 'string' },
+    
+    // Right Eye (OD - Oculus Dexter)
+    right_eye: {
+      type: 'object',
+      properties: EyeDataProperties
+    },
+    
+    // Left Eye (OS - Oculus Sinister)
+    left_eye: {
+      type: 'object',
+      properties: EyeDataProperties
+    },
+    
+    // General Diagnosis & Plan
+    general_diagnosis: { type: 'string' },
+    treatment_plan: { type: 'string' },
+    follow_up: { type: 'string' },
+    notes: { type: 'string' },
+    
+    // Status
+    status: { type: 'string', enum: ['draft', 'finalized'], default: 'draft' },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' },
+    finalized_at: { type: 'string', format: 'date-time' }
   },
-  required: ['id', 'exam_id']
+  required: ['id', 'patient_id']
 };
 
 // --- FINANCIAL ---
@@ -234,7 +319,7 @@ export const FinancialSchema = {
   required: ['id', 'type', 'amount', 'date']
 };
 
-// --- LAB EXAMS (NEW - Professional LIS Schema) ---
+// --- LAB EXAMS ---
 export const LabExamSchema = {
   title: 'lab exam schema',
   version: 0,
@@ -249,12 +334,8 @@ export const LabExamSchema = {
     date: { type: 'string', format: 'date-time' },
     veterinarian_name: { type: 'string' },
     requesting_vet: { type: 'string' },
-    
-    // Exam type: hemogram, biochem_profile, renal_profile, hepatic_profile, etc.
     exam_type: { type: 'string' },
     exam_type_label: { type: 'string' },
-    
-    // Results array - each parameter with value, unit, reference, and flag
     results: {
       type: 'array',
       items: {
@@ -266,20 +347,14 @@ export const LabExamSchema = {
           ref_min: { type: 'number' },
           ref_max: { type: 'number' },
           flag: { type: 'string', enum: ['low', 'normal', 'high', 'critical_low', 'critical_high', ''] },
-          category: { type: 'string' } // For grouping: 'eritrograma', 'leucograma', etc.
+          category: { type: 'string' }
         }
       }
     },
-    
-    // Clinical notes and conclusion
     conclusion: { type: 'string' },
     notes: { type: 'string' },
     clinical_history: { type: 'string' },
-    
-    // Workflow status
     status: { type: 'string', enum: ['draft', 'pending_review', 'finalized'], default: 'draft' },
-    
-    // Metadata
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
     finalized_at: { type: 'string', format: 'date-time' },

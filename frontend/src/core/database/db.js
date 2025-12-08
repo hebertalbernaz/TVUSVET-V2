@@ -33,14 +33,14 @@ try {
 const returnSameDoc = (oldDoc) => oldDoc;
 
 const _create = async () => {
-  console.log(`Database: Initializing RxDB tvusvet_db_v6 [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
+  console.log(`Database: Initializing RxDB tvusvet_db_v7 [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
 
   const storage = isDev 
       ? wrappedValidateAjvStorage({ storage: getRxStorageDexie() }) 
       : getRxStorageDexie();
 
   const db = await createRxDatabase({
-    name: 'tvusvet_db_v6', // BUMPED to V6 for Lab Module
+    name: 'tvusvet_db_v7', // BUMPED to V7 for Professional Ophthalmo
     storage: storage,
     ignoreDuplicate: true
   });
@@ -72,14 +72,28 @@ const _create = async () => {
     // Collections with version: 0 don't need migration strategies
     drugs: { schema: DrugSchema },
     prescriptions: { schema: PrescriptionSchema },
-    ophthalmo: { schema: OphthalmoSchema },
     templates: { schema: TemplateSchema },
     reference_values: { schema: ReferenceValueSchema },
     profiles: { schema: ProfileSchema },
     financial: { schema: FinancialSchema },
+    lab_exams: { schema: LabExamSchema },
     
-    // NEW: Lab Exams Collection
-    lab_exams: { schema: LabExamSchema }
+    // Ophthalmo with version: 1 needs migration
+    ophthalmo: { 
+        schema: OphthalmoSchema,
+        migrationStrategies: {
+            1: (oldDoc) => {
+                // Migrate from old simple schema to new OD/OS structure
+                return {
+                    ...oldDoc,
+                    right_eye: oldDoc.right_eye || {},
+                    left_eye: oldDoc.left_eye || {},
+                    general_diagnosis: oldDoc.diagnosis || '',
+                    created_at: oldDoc.created_at || new Date().toISOString()
+                };
+            }
+        }
+    }
   });
 
   await seedDatabase(db);
