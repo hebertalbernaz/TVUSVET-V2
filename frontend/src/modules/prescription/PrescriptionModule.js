@@ -29,10 +29,6 @@ export default function PrescriptionModule() {
   const [formData, setFormData] = useState({ name: '', default_dosage: '', type: practice });
 
   // Load drugs from database
-  useEffect(() => {
-    loadDrugs();
-  }, [searchTerm, practice]);
-
   const loadDrugs = async () => {
     try {
       setLoading(true);
