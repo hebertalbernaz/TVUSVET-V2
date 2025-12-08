@@ -1,5 +1,5 @@
 /**
- * TVUSVET V2.0 - RxDB Schemas (Final V5 - Frozen)
+ * TVUSVET V2.0 - RxDB Schemas (Final V6 - With Lab Module)
  */
 
 // --- SETTINGS ---
@@ -77,13 +77,11 @@ export const ExamSchema = {
                 organ_name: { type: 'string' },
                 report_text: { type: 'string' },
                 measurements: { type: 'object', additionalProperties: true },
-                
-                // STRICT MODE: Using oneOf for mixed types
                 visual_data: { 
                     oneOf: [
-                        { type: 'string' }, // Base64
-                        { type: 'object', additionalProperties: true }, // Campimetria
-                        { type: 'array' }, // Legacy/Other
+                        { type: 'string' },
+                        { type: 'object', additionalProperties: true },
+                        { type: 'array' },
                         { type: 'null' }
                     ]
                 }
@@ -218,7 +216,7 @@ export const OphthalmoSchema = {
   required: ['id', 'exam_id']
 };
 
-// --- FINANCIAL (NEW) ---
+// --- FINANCIAL ---
 export const FinancialSchema = {
   title: 'financial schema',
   version: 0,
@@ -234,4 +232,58 @@ export const FinancialSchema = {
     patient_id: { type: 'string' }
   },
   required: ['id', 'type', 'amount', 'date']
+};
+
+// --- LAB EXAMS (NEW - Professional LIS Schema) ---
+export const LabExamSchema = {
+  title: 'lab exam schema',
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    patient_id: { type: 'string' },
+    patient_name: { type: 'string' },
+    patient_species: { type: 'string' },
+    owner_name: { type: 'string' },
+    date: { type: 'string', format: 'date-time' },
+    veterinarian_name: { type: 'string' },
+    requesting_vet: { type: 'string' },
+    
+    // Exam type: hemogram, biochem_profile, renal_profile, hepatic_profile, etc.
+    exam_type: { type: 'string' },
+    exam_type_label: { type: 'string' },
+    
+    // Results array - each parameter with value, unit, reference, and flag
+    results: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          parameter: { type: 'string' },
+          value: { type: 'string' },
+          unit: { type: 'string' },
+          ref_min: { type: 'number' },
+          ref_max: { type: 'number' },
+          flag: { type: 'string', enum: ['low', 'normal', 'high', 'critical_low', 'critical_high', ''] },
+          category: { type: 'string' } // For grouping: 'eritrograma', 'leucograma', etc.
+        }
+      }
+    },
+    
+    // Clinical notes and conclusion
+    conclusion: { type: 'string' },
+    notes: { type: 'string' },
+    clinical_history: { type: 'string' },
+    
+    // Workflow status
+    status: { type: 'string', enum: ['draft', 'pending_review', 'finalized'], default: 'draft' },
+    
+    // Metadata
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' },
+    finalized_at: { type: 'string', format: 'date-time' },
+    finalized_by: { type: 'string' }
+  },
+  required: ['id', 'patient_id', 'exam_type', 'date']
 };

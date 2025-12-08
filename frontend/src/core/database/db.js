@@ -9,7 +9,7 @@ import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
 import { 
   PatientSchema, SettingsSchema, DrugSchema, PrescriptionSchema, 
   ExamSchema, OphthalmoSchema, TemplateSchema, ReferenceValueSchema, 
-  ProfileSchema, FinancialSchema        
+  ProfileSchema, FinancialSchema, LabExamSchema        
 } from './schemas';
 import { initialDrugs, initialSettings, initialTemplates } from '../../config/seeds';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,14 +33,14 @@ try {
 const returnSameDoc = (oldDoc) => oldDoc;
 
 const _create = async () => {
-  console.log(`Database: Initializing RxDB tvusvet_db_v5 [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
+  console.log(`Database: Initializing RxDB tvusvet_db_v6 [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
 
   const storage = isDev 
       ? wrappedValidateAjvStorage({ storage: getRxStorageDexie() }) 
       : getRxStorageDexie();
 
   const db = await createRxDatabase({
-    name: 'tvusvet_db_v5', // BUMPED to V5 for clean slate
+    name: 'tvusvet_db_v6', // BUMPED to V6 for Lab Module
     storage: storage,
     ignoreDuplicate: true
   });
@@ -48,20 +48,20 @@ const _create = async () => {
   // Create Collections with migration strategies for ALL versioned schemas
   await db.addCollections({
     patients: { 
-        schema: PatientSchema, // version: 1
+        schema: PatientSchema,
         migrationStrategies: {
             1: returnSameDoc
         }
     },
     settings: { 
-        schema: SettingsSchema, // version: 2
+        schema: SettingsSchema,
         migrationStrategies: {
             1: returnSameDoc,
             2: returnSameDoc
         }
     },
     exams: { 
-        schema: ExamSchema, // version: 3
+        schema: ExamSchema,
         migrationStrategies: {
             1: returnSameDoc,
             2: returnSameDoc,
@@ -76,9 +76,10 @@ const _create = async () => {
     templates: { schema: TemplateSchema },
     reference_values: { schema: ReferenceValueSchema },
     profiles: { schema: ProfileSchema },
+    financial: { schema: FinancialSchema },
     
-    // NEW: Financial Collection
-    financial: { schema: FinancialSchema }
+    // NEW: Lab Exams Collection
+    lab_exams: { schema: LabExamSchema }
   });
 
   await seedDatabase(db);
