@@ -144,8 +144,8 @@ export default function PrescriptionModule() {
         <div className="text-sm">
           <p className="font-medium text-blue-800 dark:text-blue-300">Como criar receitas?</p>
           <p className="text-blue-700 dark:text-blue-400 mt-1">
-            Acesse a lista de <strong>Pacientes</strong>, clique no botão <strong>"Novo"</strong> no card do paciente,
-            e selecione <strong>"Nova Receita"</strong>. A receita será vinculada ao paciente automaticamente.
+            Acesse a lista de <strong>Pacientes</strong>, clique no botão <strong>&quot;Novo&quot;</strong> no card do paciente,
+            e selecione <strong>&quot;Nova Receita&quot;</strong>. A receita será vinculada ao paciente automaticamente.
           </p>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function PrescriptionModule() {
             <Pill className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
             <p className="text-muted-foreground">Nenhum medicamento encontrado.</p>
             <p className="text-sm text-muted-foreground/60 mt-1">
-              Clique em "Novo Medicamento" para cadastrar.
+              Clique em &quot;Novo Medicamento&quot; para cadastrar.
             </p>
           </div>
         ) : (
