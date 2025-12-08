@@ -21,6 +21,7 @@ import CardioModule from './modules/cardio/CardioModule';
 import LabVetModule from './modules/lab_vet/LabVetModule';
 import OphthalmoHumanModule from './modules/ophthalmo_human/OphthalmoHumanModule';
 import UltrasoundModule from './modules/ultrasound/UltrasoundModule';
+import FinancialModule from './modules/financial/FinancialModule';
 
 const PrivateRoute = ({ children }) => {
   const { currentUser } = useAuth();
