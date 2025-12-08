@@ -1,5 +1,5 @@
 /**
- * TVUSVET V2.0 - RxDB Schemas (Corrigido V3 Strict)
+ * TVUSVET V2.0 - RxDB Schemas (Final V5 - Frozen)
  */
 
 // --- SETTINGS ---
@@ -55,10 +55,10 @@ export const PatientSchema = {
   required: ['id', 'name']
 };
 
-// --- EXAMS (CORRIGIDO PARA STRICT MODE) ---
+// --- EXAMS (FINAL V3) ---
 export const ExamSchema = {
   title: 'exam schema',
-  version: 3, // 🟢 Atualizado para V3 para forçar migração limpa
+  version: 3,
   primaryKey: 'id',
   type: 'object',
   properties: {
@@ -78,13 +78,12 @@ export const ExamSchema = {
                 report_text: { type: 'string' },
                 measurements: { type: 'object', additionalProperties: true },
                 
-                // 🟢 CORREÇÃO STRICT MODE:
-                // Em vez de type: ['string', 'object'], usamos oneOf.
+                // STRICT MODE: Using oneOf for mixed types
                 visual_data: { 
                     oneOf: [
                         { type: 'string' }, // Base64
                         { type: 'object', additionalProperties: true }, // Campimetria
-                        { type: 'array' }, // Legado/Outros
+                        { type: 'array' }, // Legacy/Other
                         { type: 'null' }
                     ]
                 }
@@ -217,4 +216,22 @@ export const OphthalmoSchema = {
     visual_data: { type: 'string' }
   },
   required: ['id', 'exam_id']
+};
+
+// --- FINANCIAL (NEW) ---
+export const FinancialSchema = {
+  title: 'financial schema',
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    type: { type: 'string', enum: ['income', 'expense'] },
+    category: { type: 'string' },
+    amount: { type: 'number' },
+    date: { type: 'string', format: 'date-time' },
+    description: { type: 'string' },
+    patient_id: { type: 'string' }
+  },
+  required: ['id', 'type', 'amount', 'date']
 };

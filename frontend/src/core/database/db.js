@@ -5,10 +5,11 @@ import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
-import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema'; // 🟢 Importante para garantir as migrações
+import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
 import { 
   PatientSchema, SettingsSchema, DrugSchema, PrescriptionSchema, 
-  ExamSchema, OphthalmoSchema, TemplateSchema, ReferenceValueSchema, ProfileSchema        
+  ExamSchema, OphthalmoSchema, TemplateSchema, ReferenceValueSchema, 
+  ProfileSchema, FinancialSchema        
 } from './schemas';
 import { initialDrugs, initialSettings, initialTemplates } from '../../config/seeds';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,42 +24,40 @@ try {
     addRxPlugin(RxDBUpdatePlugin);
     addRxPlugin(RxDBQueryBuilderPlugin);
     addRxPlugin(RxDBLeaderElectionPlugin);
-    addRxPlugin(RxDBMigrationPlugin); // 🟢 Garante suporte a migração
+    addRxPlugin(RxDBMigrationPlugin);
 } catch (e) {
     console.warn("Erro ao carregar plugins RxDB:", e);
 }
 
-// 🟢 Estratégia Genérica: Mantém os dados como estão (Pass-through)
-// Usada para quando mudamos a validação mas os dados antigos ainda servem.
+// Generic Migration Strategy: Pass-through (keeps data as is)
 const returnSameDoc = (oldDoc) => oldDoc;
 
 const _create = async () => {
-  console.log(`Database: Initializing RxDB (V1+V2 Singleton) [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
+  console.log(`Database: Initializing RxDB tvusvet_db_v5 [Env: ${isDev ? 'DEV' : 'PROD'}]...`);
 
   const storage = isDev 
       ? wrappedValidateAjvStorage({ storage: getRxStorageDexie() }) 
       : getRxStorageDexie();
 
   const db = await createRxDatabase({
-    name: 'tvusvet_db_v3',
+    name: 'tvusvet_db_v5', // BUMPED to V5 for clean slate
     storage: storage,
     ignoreDuplicate: true
   });
 
-  // Create Collections
-  // 🟢 CORREÇÃO: Adicionadas migrationStrategies para TODAS as coleções com version > 0
+  // Create Collections with migration strategies for ALL versioned schemas
   await db.addCollections({
     patients: { 
         schema: PatientSchema, // version: 1
         migrationStrategies: {
-            1: returnSameDoc // Migra de v0 para v1
+            1: returnSameDoc
         }
     },
     settings: { 
         schema: SettingsSchema, // version: 2
         migrationStrategies: {
-            1: returnSameDoc, // v0 -> v1
-            2: returnSameDoc  // v1 -> v2
+            1: returnSameDoc,
+            2: returnSameDoc
         }
     },
     exams: { 
@@ -70,13 +69,16 @@ const _create = async () => {
         }
     },
     
-    // Coleções com version: 0 não precisam de estratégia
+    // Collections with version: 0 don't need migration strategies
     drugs: { schema: DrugSchema },
     prescriptions: { schema: PrescriptionSchema },
     ophthalmo: { schema: OphthalmoSchema },
     templates: { schema: TemplateSchema },
     reference_values: { schema: ReferenceValueSchema },
-    profiles: { schema: ProfileSchema }
+    profiles: { schema: ProfileSchema },
+    
+    // NEW: Financial Collection
+    financial: { schema: FinancialSchema }
   });
 
   await seedDatabase(db);
@@ -114,7 +116,6 @@ export const getDatabase = () => {
   }
   window._tvusvet_db_promise = _create().catch(err => {
       console.error("DB Init Failed:", err);
-      // Não resetamos para null imediatamente para evitar loop infinito de tentativas (Erro COL23)
       throw err;
   });
   return window._tvusvet_db_promise;

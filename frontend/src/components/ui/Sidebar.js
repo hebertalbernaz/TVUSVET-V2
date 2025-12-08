@@ -10,7 +10,7 @@ import {
   LogOut,
   Dog,
   User,
-  Pill // 🟢 Ícone novo para Medicamentos
+  Pill
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from './button';
@@ -23,7 +23,7 @@ export function Sidebar() {
 
   const isActive = (path) => location.pathname === path;
 
-  // Módulos Globais
+  // Global Modules
   const modules = [
     {
       id: 'core',
@@ -32,12 +32,12 @@ export function Sidebar() {
       path: '/',
       enabled: hasModule('core')
     },
-    // 🟢 VOLTOU: Acesso ao Banco de Medicamentos (Gestão)
+    // Drug Database Manager - Renamed from "Receita Smart"
     {
       id: 'drugs_manager',
-      name: 'Medicamentos', // Nome focado em Gestão/Banco
+      name: 'Banco de Medicamentos',
       icon: Pill,
-      path: '/prescription', // Rota do Módulo Geral
+      path: '/prescription',
       enabled: hasModule('prescription')
     },
     {

@@ -1,12 +1,12 @@
 /**
  * TVUSVET Database Service (Adapter for RxDB)
- * Mantém a interface compatível com o UI existente, mas usa RxDB por baixo.
+ * Maintains compatible interface with existing UI, but uses RxDB underneath.
  */
 import { getDatabase, genId } from '../core/database/db';
 
 class DatabaseService {
   
-  // Helper para obter JSON limpo dos documentos RxDB
+  // Helper to get clean JSON from RxDB documents
   async _files(query) {
       const docs = await query.exec();
       return docs.map(d => d.toJSON());
@@ -62,7 +62,7 @@ class DatabaseService {
           ...d, 
           id: genId(), 
           exam_type: d.exam_type||'ultrasound_abd', 
-          date: d.exam_date||new Date().toISOString(), // Schema usa 'date', adapter antigo usava 'exam_date'
+          date: d.exam_date||new Date().toISOString(),
           organs_data: d.organs_data||[], 
           images: d.images||[], 
           status: 'draft'
@@ -103,13 +103,13 @@ class DatabaseService {
       const db = await getDatabase();
       let s = await this._one(db.settings.findOne('global_settings'));
       
-      // FALLBACK: Se settings não existir, cria automaticamente
+      // FALLBACK: Create settings if not found
       if (!s) {
-        console.warn('Settings não encontrado, criando configurações padrão...');
+        console.warn('Settings not found, creating defaults...');
         const defaultSettings = {
           id: 'global_settings',
           practice_type: 'vet',
-          active_modules: ['core', 'ultrasound', 'financial'],
+          active_modules: ['core', 'ultrasound', 'financial', 'prescription'],
           clinic_name: '',
           theme: 'light',
           active_profile_id: null,
@@ -119,8 +119,8 @@ class DatabaseService {
           await db.settings.insert(defaultSettings);
           s = defaultSettings;
         } catch (e) {
-          console.error('Erro ao criar settings:', e);
-          return defaultSettings; // Retorna default mesmo se insert falhar
+          console.error('Error creating settings:', e);
+          return defaultSettings;
         }
       }
       return s || {};
@@ -165,7 +165,6 @@ class DatabaseService {
       const doc = await db.profiles.findOne(id).exec();
       if (doc) {
           await doc.patch(data);
-          // Se for o ativo, atualiza as configs globais na hora
           const settings = await this.getSettings();
           if (settings.active_profile_id === id) {
               await this.activateProfile(id);
@@ -178,13 +177,13 @@ class DatabaseService {
   async activateProfile(profileId) {
       const db = await getDatabase();
       const target = await db.profiles.findOne(profileId).exec();
-      if (!target) throw new Error("Perfil não encontrado");
+      if (!target) throw new Error("Profile not found");
 
       const profileData = target.toJSON();
       
       const settingsDoc = await db.settings.findOne('global_settings').exec();
       
-      // Copia dados do perfil para settings (Flattening)
+      // Copy profile data to settings (Flattening)
       await settingsDoc.patch({
           active_profile_id: profileData.id,
           active_profile_name: profileData.name,
@@ -293,6 +292,70 @@ class DatabaseService {
           const newImages = currentImages.filter(i => i.id !== iid);
           await doc.patch({ images: newImages });
       }
+  }
+
+  // ================= FINANCIAL (NEW) =================
+  async addTransaction(data) {
+      const db = await getDatabase();
+      const transaction = {
+          id: genId(),
+          type: data.type, // 'income' or 'expense'
+          category: data.category || 'Geral',
+          amount: parseFloat(data.amount),
+          date: data.date || new Date().toISOString(),
+          description: data.description || '',
+          patient_id: data.patient_id || null
+      };
+      await db.financial.insert(transaction);
+      return transaction;
+  }
+
+  async getTransactions(filters = {}) {
+      const db = await getDatabase();
+      let selector = {};
+      if (filters.type) selector.type = filters.type;
+      if (filters.category) selector.category = filters.category;
+      if (filters.patient_id) selector.patient_id = filters.patient_id;
+      
+      return await this._files(db.financial.find({ selector }).sort({ date: 'desc' }));
+  }
+
+  async getBalance() {
+      const db = await getDatabase();
+      const transactions = await this._files(db.financial.find());
+      
+      let totalIncome = 0;
+      let totalExpense = 0;
+      
+      transactions.forEach(t => {
+          if (t.type === 'income') {
+              totalIncome += t.amount;
+          } else if (t.type === 'expense') {
+              totalExpense += t.amount;
+          }
+      });
+      
+      return {
+          totalIncome,
+          totalExpense,
+          balance: totalIncome - totalExpense
+      };
+  }
+
+  async deleteTransaction(id) {
+      const db = await getDatabase();
+      const doc = await db.financial.findOne(id).exec();
+      if (doc) await doc.remove();
+  }
+
+  async updateTransaction(id, data) {
+      const db = await getDatabase();
+      const doc = await db.financial.findOne(id).exec();
+      if (doc) {
+          await doc.patch(data);
+          return doc.toJSON();
+      }
+      throw new Error('Transaction not found');
   }
 }
 
