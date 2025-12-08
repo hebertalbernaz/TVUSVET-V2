@@ -277,7 +277,7 @@ export default function PrescriptionModule() {
                 </div>
                 <div className="text-xs text-muted-foreground text-center px-8">
                     {formData.type === 'vet' ? (
-                        <p>Dica: Use "mg/kg" no texto para ativar a calculadora automática nas receitas.</p>
+                        <p>Dica: Use &quot;mg/kg&quot; no texto para ativar a calculadora automática nas receitas.</p>
                     ) : (
                         <p>Dica: Escreva a posologia comum para agilizar a prescrição.</p>
                     )}
