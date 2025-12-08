@@ -49,12 +49,11 @@ export default function PrescriptionModule() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, practice]);
 
   useEffect(() => {
     loadDrugs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, practice]);
+  }, [loadDrugs]);
 
   // Open modal for create/edit
   const handleOpenModal = (drug = null) => {
