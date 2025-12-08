@@ -145,7 +145,7 @@ function App() {
               <Route path="/financial" element={
                 <PrivateRoute>
                   <AppLayout>
-                    <div className="p-6"><h1>Módulo Financeiro (Em Breve)</h1></div>
+                    <FinancialModule />
                   </AppLayout>
                 </PrivateRoute>
               } />
