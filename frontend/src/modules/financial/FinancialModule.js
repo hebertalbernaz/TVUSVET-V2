@@ -266,7 +266,7 @@ export default function FinancialModule() {
               <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
               <p className="text-muted-foreground">Nenhuma transação registrada.</p>
               <p className="text-sm text-muted-foreground/60 mt-1">
-                Clique em "Nova Transação" para começar.
+                Clique em &quot;Nova Transação&quot; para começar.
               </p>
             </div>
           ) : (
